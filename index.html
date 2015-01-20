@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<html lang="en">
+
+    <head>
+
+        <!--<link rel="stylesheet" type="text/css" href="map.css"/>-->
+            
+        <script type="text/javascript" src="d3.js"></script>
+        <script type="text/javascript" src="topojson.js"></script>
+        <style>
+            .boundary {
+                fill: #eee;
+                stroke: #999;
+            }
+        </style>
+
+    </head>
+
+    <body>
+        <h1>SVG map of the Netherlands</h1>
+
+        <script>
+            /*http://bost.ocks.org/mike/map/   -- make a map
+            http://geojson.org/geojson-spec.html#bounding-boxes
+            http://www.smartjava.org/content/using-d3js-visualize-gis
+            https://gist.githubusercontent.com/kobben/5932448/raw/6e51985ca42c901da78df2cfabe816577da888d1/test.json - Nederland
+            http://www.knmi.nl/klimatologie/monv/reeksen/  -KNMI data
+            http://www.knmi.nl/klimatologie/monv/nstations.html - KNMI locaties
+            http://www.smartjava.org/content/using-d3js-visualize-gis  - make a map
+            */
+            "use strict";
+
+            var SVGwidth = 600, 
+                SVGheight = 600;
+
+            // RD=RijksDriehoekstelsel=Dutch national projection system bounds:
+            var minx = 13600;
+            var miny = 306900;
+            var maxx = 278000;
+            var maxy = 619300;
+                
+            // use RD limits to calculate scale and bounds needed for
+            // affine transformation of RD coordinates to screen coordinates
+            var height = maxy - miny;
+            var width = maxx - minx;
+            var scale = Math.min(SVGheight,SVGwidth)/Math.max(height,width);
+
+            var y_offset = (maxy * scale);
+            var x_offset = -(minx * scale);
+
+            var svg = d3.select("body").append("svg")
+                    .attr("id", "svgmap")
+                    .attr("width", SVGwidth)
+                    .attr("height", SVGheight);
+                        
+            // AffineTransformation as a basic pseudo-projection of RD coords to screen coords
+            // http://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
+            function AffineTransformation(a, b, c, d, tx, ty) {
+                return {
+                    //overrides normal D3 projection stream (to avoid adaptive sampling)
+                    stream: function(output) {
+                        return {
+                            point: function(x, y) { output.point(a * x + b * y + tx, c * x + d * y + ty); },
+                            sphere: function() { output.sphere(); },
+                            lineStart: function() { output.lineStart(); },
+                            lineEnd: function() { output.lineEnd(); },
+                            polygonStart: function() { output.polygonStart(); },
+                            polygonEnd: function() { output.polygonEnd(); }
+                        };
+                    }
+                };
+            }
+
+            var path = d3.geo.path().projection(AffineTransformation(scale, 0, 0, -scale, x_offset, y_offset));
+
+            var nederland = svg.append("g")
+                .attr("id", "boundary")
+                .attr("class", "Nederland");
+
+            d3.json("nederland.json", function(error, nld) {
+                // test.json = small map of Netherlands (using RD coords)
+                nederland.append("path")
+                    .data(nld.features)
+                    .attr("class", "place")
+                    .attr("d", path);
+                    nederland.selectAll("path")
+                        .style("stroke","black")
+                        .style("stroke-width", "1px")
+                        .style("fill", "green")
+                        .style("opacity", "0.8");
+            });
+
+            d3.select(self.frameElement).style("height", SVGheight + "px");
+        
+
+            var stations = svg.append("g")
+                .attr("id", "stations")
+                .attr("class", "weerstation");
+                    
+            d3.json("weerstation.json", function(error, wst) {
+                stations.append("path")
+                    .datum(topojson.feature(wst, wst.objects.places))
+                    .attr("d", path)
+                    .attr("class", "place");
+                    stations.selectAll("path")
+                        .style("fill", "red")
+                        .style("stroke", "black")
+                        .style("width", "0.5px")
+                        .style("height", "0.5px");
+            });
+
+        </script>
+    </body>
+</html>
