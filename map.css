@@ -1,11 +1,13 @@
-/*path: {
-    stroke: grey;
-    stroke-width: 1;
-    fill: grey;
-}*/
+.infobox {
+	width: 100px;
+	height: 30px;
+	border: 5px solid navy;
+	margin-left: 620px;
+	position: absolute;
+}
 
-#nederland{
-	color: green;
-	stroke-width: 1px;
-	stroke-color: white;
+
+
+.map {
+	background-color: grey;
 }

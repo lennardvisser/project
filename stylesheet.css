@@ -1,0 +1,52 @@
+.text {
+	font-family: arial;
+}
+
+#title {
+	font-size: 25px;
+	padding: 20px; 
+	padding-left: 150px;
+}
+
+#weerstation {
+	font-weight: bold;
+	font-size: 18px;
+	text-align: center;
+}
+
+#infobox {
+	width: 240px;
+	height: 200px;
+	border: 2px solid grey;
+	margin: 20px;
+	margin-left: 600px;
+	position: absolute;
+	padding: 5px;
+	background-color: #E8E8E8;
+	opacity: .8;
+}
+
+#popup {
+	width: fit-content;
+	height: fit-content;
+	display: none;
+	padding: 3px;
+	border: 1px solid grey;
+	background-color: #FFCC66;
+	position: absolute;
+	border-radius: 5px;
+	font-size: 12px;
+}
+
+.svgmap {
+	background-color: #B7CBFE;
+	margin: 20px;
+	fill: green;
+	border: 3px solid grey;
+
+}
+
+#nederland {
+
+}
+
