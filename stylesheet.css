@@ -30,7 +30,7 @@
 
 .infobox {
 	position: absolute;
-	width: 270px;
+	width: 280px;
 	height: 190px;
 	border: 2px solid grey;
 	margin: 5px;
@@ -62,7 +62,7 @@
 .chartContainer {
 	position: absolute;
 	margin-top: -20px;
-	margin-left: 900px;
+	margin-left: 920px;
 	margin-right: 0px;
 	width: 600px;
 	height: 310px;
@@ -88,22 +88,6 @@
 .dropdown {
 	margin-top: 5px;
 	margin-left: 25px;
-}
-
-.cellen {
-	stroke-color: white;
-	background-color: white;
-	border-color: white;
-	color: white;
-	fill: white;
-}
-
-#cells {
-	stroke-color: "white";
-	background-color: "white";
-	border-color: "white";
-	color: "white";
-	fill: "white";
 }
 
 #footer {

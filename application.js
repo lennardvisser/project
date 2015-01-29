@@ -1,18 +1,8 @@
-
-/*http://bost.ocks.org/mike/map/   -- make a map
-http://geojson.org/geojson-spec.html#bounding-boxes
-http://www.smartjava.org/content/using-d3js-visualize-gis
-https://gist.githubusercontent.com/kobben/5932448/raw/6e51985ca42c901da78df2cfabe816577da888d1/test.json - Nederland
-http://www.knmi.nl/klimatologie/monv/reeksen/  -KNMI data
-http://www.knmi.nl/klimatologie/monv/nstations.html - KNMI locaties
-http://www.smartjava.org/content/using-d3js-visualize-gis  - make a map
+/*
+http://www.knmi.nl/klimatologie/monv/nstations.html - KNMI RD coordinaten
+http://www.knmi.nl/klimatologie/monv/#tabelletje - KNMI precipitation data
+http://www.knmi.nl/klimatologie/mow/ - KNMI temperature data
 */
-
-var year2011 = "2011";
-var year2012 = "2012";
-var year2013 = "2013";
-var year2014 = "2014";
-var year = "2014";
 
 // initializing json data
 var precipitation2011 = "jonv2011.json"
@@ -33,24 +23,28 @@ var n2 = "De Kooy";
 var n3 = "Beek";
 var n4 = "Eelde";
 var n5 = "Ritthem";
-
+var title = "Precipitation";
+var graphvalue = true;
+var graphformat = "0 mm";
+var graphinterval = 50;
 var selectedstation = n1;
 var dataset = precipitation2014;
-var dataset2 = temperature2014;
+var tempdataset = temperature2014;
 var gekozenweerstations = alleweerstations;
 
-// initilizing selection options
+// initilizing selection options of weatherstations
 var select1 = false;
 var select2 = false;
 var select3 = false;
 var select4 = false;
 var select5 = false;
 
-/* VORONOI
-var idweerstationmap = true;
-var idvisualisatiemap = false;
-var idmap = idweerstationmap;*/
-
+// variables to select years in dropdown
+var year2011 = "2011";
+var year2012 = "2012";
+var year2013 = "2013";
+var year2014 = "2014";
+var year = "2014";
 
 // colorsets for knmistations and graphs
 var colorset1 = ["#FFFFFF", "#20B2AA","#663300","#AA20B2","#2E64FE","#FE2E2E"]
@@ -85,7 +79,7 @@ var popupbox = document.getElementById("popup");
 var nederland = svg.append("g")
     .attr("id", "boundary");
 
-//  append svg with g for adding path elements of the weatherstations
+//  append svg with g for adding path elements of the weather stations
 var stations = svg.append("g")
     .attr("id", "stations")
     .attr("class", "weerstation");
@@ -99,22 +93,22 @@ d3.select('#opts1')
     year = eval(d3.select(this).property('value'));
     if (year == "2011"){
         dataset = precipitation2011;
-        dataset2 = temperature2011;
+        tempdataset = temperature2011;
     }
     else if (year == "2012"){
         dataset = precipitation2012;
-        dataset2 = temperature2012;
+        tempdataset = temperature2012;
     }
     else if (year == "2013"){
         dataset = precipitation2013;
-        dataset2 = temperature2013;
+        tempdataset = temperature2013;
     }
     else if (year == "2014"){
         dataset = precipitation2014;
-        dataset2 = temperature2014;
+        tempdataset = temperature2014;
     }
     
-    makegraph(n1, n2, n3, n4, n5);
+    makegraph(n1, n2, n3, n4, n5, graphvalue);
 });
 
 // handle on click event for selecting weather stations to visualize
@@ -126,30 +120,26 @@ d3.select('#opts2')
     drawmap(gekozenweerstations);
 });
 
-// handle on click event for selecting map VORONOI
-/*d3.select('#opts3')
+// handle on clock event drawing graph with precipitation or temperature data
+d3.select('#opts4')
   .on('change', function() {
-    console.log(idmap)
-    console.log(eval(d3.select(this).property('value')));
-    idmap = eval(d3.select(this).property('value'));
-    console.log (idmap)
-    if (idmap == true){
-        cells.selectAll("path").remove();
-        drawmap(gekozenweerstations);
+    graphvalue = eval(d3.select(this).property('value'));
+    makegraph(n1, n2, n3, n4, n5, graphvalue);
+    if (graphvalue != true){
+        n1 = "De Bilt";
     }
-    else
-        stations.selectAll("path").remove();
-        visualisatiemap();
-});*/
+    makegraph2(n1, selectedstation, graphvalue);
+});
 
 // load map and graphs with default data onload website
 drawmap(gekozenweerstations);
-makegraph(n1, n2, n3, n4, n5);
-makegraph2(n1, selectedstation);
+makegraph(n1, n2, n3, n4, n5, graphvalue);
+makegraph2(n1, selectedstation, graphvalue);
 
 
 // AffineTransformation as a basic pseudo-projection of RD coords to screen coords
 // http://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
+// From: https://gist.github.com/kobben/5932448
 function AffineTransformation(a, b, c, d, tx, ty) {
     return {
         //overrides normal D3 projection stream (to avoid adaptive sampling)
@@ -175,7 +165,6 @@ function drawmap(gekozenweerstations1){
             .attr("id", "nederland")
             .attr("d", path);
             nederland.selectAll("path")
-
     drawpoints(gekozenweerstations1)
     });
 }
@@ -183,7 +172,7 @@ function drawmap(gekozenweerstations1){
 
 // function draws weather stations
 function drawpoints(dataweerstations) {
-    // giving weatherstation id of their name + 0 (if selected 0 becomes value >0)
+    // giving weather station id of their name + 0 (if selected 0 becomes value >0)
     d3.json(dataweerstations, function(error, wst) {
         for (var i = 0; i < wst.objects.places.geometries.length; i++) {
             stations.append("path")
@@ -196,7 +185,7 @@ function drawpoints(dataweerstations) {
         // interactivity points and popup
         stations.selectAll("path")
             .on("mouseover", function(){
-                // adjust style while on path weatherstation
+                // adjust style while on path weather station
                 d3.select(this)
                     .style("stroke", "blue")
                     .style("stroke-width", "3px")
@@ -237,7 +226,7 @@ function drawpoints(dataweerstations) {
                 })
 
                 // get data for infobox
-                d3.json(dataset2, function(error, temp) {
+                d3.json(tempdataset, function(error, temp) {
                     for (var j = 0; j < 5; j++) {
                         if (selected == temp[j].plaats) {
                             temperatuur.innerHTML = " - " + "Mean temperature: " + temp[j].JAAR + " °C at " + temp[j].plaats + " in " + year;
@@ -276,7 +265,7 @@ function drawpoints(dataweerstations) {
 
 // selection function
 function selectpoint (clickedloc, clickedid){
-    // look for open selection option
+    // look for open selection option, else return alert
     clickedid = cleanid(clickedid);
     if (select1 == false){
         select1 = true;
@@ -284,7 +273,7 @@ function selectpoint (clickedloc, clickedid){
         d3.select(clickedloc)
             .style("fill", colorset1[1])
             .attr("id", clickedid + 1);
-        makegraph2(n1, clickedid);
+        makegraph2(n1, clickedid, graphvalue);
     }
     else if (select2 == false){
         select2 = true;
@@ -314,13 +303,11 @@ function selectpoint (clickedloc, clickedid){
             .style("fill", colorset1[5])
             .attr("id", clickedid + 5);
     }
-
     // if none avialable give user popup in the form of alert
     else
         window.alert("Select maximal 5 weather stations. Unselect one weather station, by clicking before selecting a new one.");
-
     // make graph of selection
-    makegraph(n1, n2, n3, n4, n5);
+    makegraph(n1, n2, n3, n4, n5, graphvalue);
 }
 
 
@@ -353,9 +340,31 @@ function deselectpoint (clickedloc, clickedid){
 
 // function obtains station identifier in data
 // to enable drawing graph
-function makegraph(a,b,c,d,e){
-    d3.json(dataset, function(error, pre) {
-        for (var n = 0; n < 323; n++) {
+function makegraph(a,b,c,d,e,graphvalue){
+    var datasetnew;
+    // graph of precipitation
+    if (graphvalue == true){
+        datasetnew = dataset;
+        graphformat = "0 mm";
+        graphinterval = 50;
+        title = "Precipitation"
+
+    }
+    // graph of temperature
+    else {
+        datasetnew = tempdataset
+        a = "De Bilt";
+        b = "De Kooy";
+        c = "Beek";
+        d = "Eelde";
+        e = "Ritthem";
+        graphformat = "0 °C";
+        graphinterval = 5;
+        title = "Temperature"
+    }
+    // get number identifier of "plaats" to obtain data in a later stadium
+    d3.json(datasetnew, function(error, pre) {
+        for (var n = 0; n < pre.length; n++) {
             if (a == pre[n].plaats){
                 a = n;
             };
@@ -372,16 +381,16 @@ function makegraph(a,b,c,d,e){
                 e = n;     
             };
         };
-        drawgraph(pre, a,b,c,d,e);
+        drawgraph(pre, a,b,c,d,e,graphformat,graphinterval);
 
     })
 }
 
-// functions draws graph using canvasJS
+// functions draws graph using canvasJS library
 function drawgraph(data, val1, val2, val3, val4, val5){
     var chart = new CanvasJS.Chart("chartContainer1", {
         title:{
-            text: "Precipitation per month (" + year + ")"
+            text: title + " per month (" + year + ")"
         },
         axisX:{
             interval: 1,
@@ -389,8 +398,8 @@ function drawgraph(data, val1, val2, val3, val4, val5){
             valueFormatString: "MMM"
         },
         axisY:{
-            interval: 50,
-            valueFormatString: "0 mm"
+            interval: graphinterval,
+            valueFormatString: graphformat
         },
         toolTip:{
               shared:true
@@ -427,30 +436,50 @@ function graphdataperyear (data, val, n, colorset, namegiven){
 
 // function obtains datasets and identifier of first selected point
 // to enable drawing graph of data over the past 4 years
-function makegraph2(a, selectedstation){
-    d3.json(precipitation2011, function(error, pre2011) {
-        d3.json(precipitation2012, function(error, pre2012) {
-            d3.json(precipitation2013, function(error, pre2013) {
-                d3.json(precipitation2014, function(error, pre2014) {
-                    for (var n = 0; n < 323; n++) {
-                        if (a == pre2014[n].plaats){
-                            a = n;
-                        };
-                    }
-                    drawgraph2(a, pre2011, pre2012, pre2013, pre2014, selectedstation);
+function makegraph2(a, selectedstation, graphvalue){
+    // draw precipitation data if selected
+    if (graphvalue == true){
+        d3.json(precipitation2011, function(error, pre2011) {
+            d3.json(precipitation2012, function(error, pre2012) {
+                d3.json(precipitation2013, function(error, pre2013) {
+                    d3.json(precipitation2014, function(error, pre2014) {
+                        for (var n = 0; n < pre2011.length; n++) {
+                            if (a == pre2014[n].plaats){
+                                a = n;
+                            };
+                        }
+                        drawgraph2(a, pre2011, pre2012, pre2013, pre2014, selectedstation, "Precipitation", "0 mm", 50);
+                    })
                 })
             })
         })
-    })
+    }
+    // draw temperature data
+    else {
+        d3.json(temperature2011, function(error, temp2011) {
+            d3.json(temperature2012, function(error, temp2012) {
+                d3.json(temperature2013, function(error, temp2013) {
+                    d3.json(temperature2014, function(error, temp2014) {
+                        for (var n = 0; n < temp2011.length; n++) {
+                            if (a == temp2014[n].plaats){
+                                a = n;
+                            };
+                        }
+                        drawgraph2(a, temp2011, temp2012, temp2013, temp2014, selectedstation, "Temperature", "0 °C", 5);
+                    })
+                })
+            })
+        })
+    }
 
 }
 
-// functions draws graph using canvasjs
-function drawgraph2(val, dataset1, dataset2, dataset3, dataset4, selectedstation){
+// functions draws graph using canvasjs, adjust graph title interval etc to temperature or precipitation
+function drawgraph2(val, dataset1, dataset2, dataset3, dataset4, selectedstation, title, format, interval){
     var city = "De Bilt"
     var chart2 = new CanvasJS.Chart("chartContainer2", {
         title:{
-            text: "Precipitation per month (" + selectedstation + ")"
+            text: title + " per month (" + selectedstation + ")"
         },
         axisX:{
             interval: 1,
@@ -458,8 +487,8 @@ function drawgraph2(val, dataset1, dataset2, dataset3, dataset4, selectedstation
             valueFormatString: "MMM"
         },
         axisY:{
-            interval: 50,
-            valueFormatString: "0 mm"
+            interval: interval,
+            valueFormatString: format
         },
         toolTip:{
               shared:true
@@ -488,40 +517,3 @@ function resetselection(){
     select4 = false;
     select5 = false;
 }
-
-/* VORONOI
-var cells = d3.select("svg").append("g")
-        .attr("id", "cells")
-        .attr("class", "cellen");
-
-var projection = AffineTransformation(scale, 0, 0, -scale, x_offset, y_offset)
-
-function visualisatiemap(){
-    d3.json(alleweerstations, function(error, weerst){
-        var positions = [];
-
-        for (var i = 0; i < weerst.objects.places.geometries.length; i++) {
-            positions.push(([weerst.objects.places.geometries[i].coordinates[0], weerst.objects.places.geometries[i].coordinates[1]]))
-        }
-
-
-        var polygons = d3.geom.voronoi(positions);
-
-        console.log(cells.selectAll("g").data(weerst.objects.places.geometries));
-
-        var g = cells.selectAll("g")
-            .data(weerst.objects.places.geometries)
-            .enter().append("g");
-
-        g.append("path")
-            .attr("class", "cell")
-            .attr("d", function(d, i) { return "M" + polygons[i].join("L") + "Z"; })
-            .style("stroke", "white")
-            .style("fill", "orange")
-
-        g.append("circle")
-            .attr("cx", function(d, i) { return positions[i][0]; })
-            .attr("cy", function(d, i) { return positions[i][1]; })
-            .attr("r", 1.5);
-    });
-}*/
