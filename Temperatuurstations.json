@@ -1,0 +1,10 @@
+{"type":"Topology",
+	"objects":{
+		"places":{"type":"GeometryCollection","geometries":[
+
+{"type":"Point","coordinates":[235000,571000],"properties":{"name":"Eelde"}},
+{"type":"Point","coordinates":[115000,548000],"properties":{"name":"De Kooy"}},
+{"type":"Point","coordinates":[141000,457000],"properties":{"name":"De Bilt"}},
+{"type":"Point","coordinates":[32000,387000],"properties":{"name":"Ritthem"}},
+{"type":"Point","coordinates":[185000,326000],"properties":{"name":"Beek"}}
+]}}}
