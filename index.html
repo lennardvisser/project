@@ -7,173 +7,97 @@
         <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
         <script type="text/javascript" src="d3.js"></script>
         <script type="text/javascript" src="topojson.js"></script>
+        <script type="text/javascript" src="canvasjs.min.js"></script>
     </head>
 
-    <body>
-        <div class="text" id="title">SVG map of the Netherlands</div>
-
-        <div class="box" id="popup">
-            <div id="popplace"></div>
-        </div>
-
-        <div class="box" id="infobox">
-            <div id="weerstation">Informatie weerstation</div>
-            <div id="plaats">Plaats: </div>
-            <div id="nummer">Nummer: </div>
-            <div id="Coordinaten">Coordinaten: </div>
-            <div id="OL">- OL: </div>
-            <div id="NB">- NB: </div>
-            <div id="neerslagjaar">Cumulatief neerslag: </div>
+    <body class="body">
+        <header>
+            <div class="text" id="title">Weather information of the 325 Dutch weather stations</div>
+        </header>
+        <div class="dropdown">
+            <select id = "opts2">
+                <option value="alleweerstations" selected="selected">All weather stations</option> 
+                <option value="KNMIweerstations">KNMI weather stations</option>
+                <option value="temperatuurstations">Temperature stations</option> 
+            </select>
+            <select id = "opts1">
+                <option value="year2011">2011</option>
+                <option value="year2012">2012</option> 
+                <option value="year2013">2013</option>
+                <option value="year2014" selected="selected">2014</option>
+            </select>
+            <select id = "opts3">
+                <option value="idweerstationmap" selected="selected">Weather station map</option>
+                <option value="idvisualisatiemap">Visualisation map</option> 
+            </select>
+            <select id = "opts3">
+                <option value="Precipitation stations" selected="selected">Precipitation</option>
+                <option value="Temperature stations">Temperature</option> 
+            </select>
         </div>
 
         <svg id="map" style="height: 600px; width: 550px;">
-
+            <div class="infobox" id="legend">
+                <div>Legend</div>
+                <div>
+                    <div class="circleBase" style="background: #FAAC58;"></div>
+                    <div class="legendText">Weather station</div>
+                </div>
+                <div>
+                    <div class="circleBase" id="type1"></div>
+                    <div class="legendText">Selected</div>
+                </div>
+                <div>
+                    <div class="circleBase" style="background: #20B2AA;"></div>
+                    <div class="legendText">Selection 1</div>
+                </div>
+                <div>
+                    <div class="circleBase" style="background: #663300;"></div>
+                    <div class="legendText">Selection 2</div>
+                </div>
+                <div>
+                    <div class="circleBase" style="background: #AA20B2;"></div>
+                    <div class="legendText">Selection 3</div>
+                </div>
+                <div>
+                    <div class="circleBase" style="background: #2E64FE;"></div>
+                    <div class="legendText">Selection 4</div>
+                </div>
+                <div>
+                    <div class="circleBase" style="background: #FE2E2E;"></div>
+                    <div class="legendText">Selection 5</div>
+                </div>
+            </div>
         </svg>
 
+        <div class="popupbox" id="popup">
+            <div id="popplace"></div>
+        </div>
 
-        <script>
-            /*http://bost.ocks.org/mike/map/   -- make a map
-            http://geojson.org/geojson-spec.html#bounding-boxes
-            http://www.smartjava.org/content/using-d3js-visualize-gis
-            https://gist.githubusercontent.com/kobben/5932448/raw/6e51985ca42c901da78df2cfabe816577da888d1/test.json - Nederland
-            http://www.knmi.nl/klimatologie/monv/reeksen/  -KNMI data
-            http://www.knmi.nl/klimatologie/monv/nstations.html - KNMI locaties
-            http://www.smartjava.org/content/using-d3js-visualize-gis  - make a map
-            */
-            "use strict";
+        <div class="infobox" id="infobox1">
+            This web application provides an overview of the monthly and yearly precipitation data in the Netherlands. On the left side of the page a map of the Netherlands is visualised, indicating all the Dutch 325 on land weather stations on default. By selecting the first dropdown menu one is able to choose to visualise either all weather stations or those maintained by the KNMI. By hovering over the weather stations you are able to obtain the location and further information is displayed in the box below. On the right side graph 1 shows data of the 5 selected weather stations in the map, graph 2 visualises data of the first selected station over the past 4 years. In the second dropdown menu the year of the data visualised in graph 1 can be chosen. 
+        </div>
 
-            var SVGwidth = 600, 
-                SVGheight = 600;
+        <div class="infobox" id="infobox2">
+            <div id="weerstation">Information weather station</div>
+            <div id="plaats">Location/City: </div>
+            <div id="nummer">Station #: </div>
+            <div id="Coordinaten">Coordinates: </div>
+            <div id="OL">- OL: </div>
+            <div id="NB">- NB: </div>
+            <div id="perjaar">Per year: </div>
+            <div id="neerslagjaar">- Cumulative precipitation: </div>
+            <div id="temperatuur">- Mean temperature: </div>
+        </div>
 
-            // RD=RijksDriehoekstelsel=Dutch national projection system bounds:
-            var minx = 2000;
-            var miny = 300000;
-            var maxx = 278000;
-            var maxy = 630000;
-                
-            // use RD limits to calculate scale and bounds needed for
-            // affine transformation of RD coordinates to screen coordinates
-            var height = maxy - miny;
-            var width = maxx - minx;
-            var scale = Math.min(SVGheight,SVGwidth)/Math.max(height,width);
 
-            var y_offset = (maxy * scale);
-            var x_offset = -(minx * scale);
+        <div class="chartContainer" id="chartContainer1"></div>
+        <div class="chartContainer" id="chartContainer2"></div>
 
-            var svg = d3.select("svg")
-                    .attr("class", "svgmap")
-                        
-            // AffineTransformation as a basic pseudo-projection of RD coords to screen coords
-            // http://en.wikipedia.org/wiki/Transformation_matrix#Affine_transformations
-            function AffineTransformation(a, b, c, d, tx, ty) {
-                return {
-                    //overrides normal D3 projection stream (to avoid adaptive sampling)
-                    stream: function(output) {
-                        return {
-                            point: function(x, y) { output.point(a * x + b * y + tx, c * x + d * y + ty); },
-                            sphere: function() { output.sphere(); },
-                            lineStart: function() { output.lineStart(); },
-                            lineEnd: function() { output.lineEnd(); },
-                            polygonStart: function() { output.polygonStart(); },
-                            polygonEnd: function() { output.polygonEnd(); }
-                        };
-                    }
-                };
-            }
-
-            // create path form RD coordinates
-            var path = d3.geo.path().projection(AffineTransformation(scale, 0, 0, -scale, x_offset, y_offset));
-
-            // element voor map nederland
-            var nederland = svg.append("g")
-                .attr("id", "boundary");
-
-            // map nederland
-            d3.json("nederland.json", function(error, nld) {
-                // map of the Netherlands using RD coordinates
-                nederland.append("path")
-                    .data(nld.features)
-                    .attr("id", "nederland")
-                    .attr("d", path);
-                    nederland.selectAll("path")
-                        .style("stroke-width", "1px")
-                        .style("stroke", "black");
-            });
-        
-            // elemet for path weerstations
-            var stations = svg.append("g")
-                .attr("id", "stations")
-                .attr("class", "weerstation");
-
-            var popupbox = document.getElementById("popup");
-
-            // creating points, path elements, red dots
-            d3.json("weerstations.json", function(error, wst) {
-                for (var i = 0; i < 325; i++) {
-                    stations.append("path")
-                        .datum(topojson.feature(wst, wst.objects.places.geometries[i]))
-                        .attr("d", path)
-                        .attr("id", wst.objects.places.geometries[i].properties.name)
-                        .attr("class", "place");                    
-
-                    stations.selectAll("path")
-                        .style("r", "2")
-                        .style("fill", "red")
-                        .style("stroke", "black")
-                        .style("stroke-width", "1px");
-                }
-                
-                // interactivity points and popup
-                stations.selectAll("path")
-                    .on("mouseover", function(){
-                        d3.select(this)
-                            .style("fill", "blue")
-
-                        var xpos = (event.clientX);
-                        var ypos = (event.clientY);
-
-                        popupbox.style.display = "block";
-                        popupbox.style.top = ypos - 30 + "px";
-                        popupbox.style.left = xpos - 20 + "px";
-                        var selected = this.id;
-                        popplace.innerHTML = selected;
-                        plaats.innerHTML = "Plaats: " + selected;
-
-                        d3.json("infoweerstation.json", function(error, info) {
-                            for (var k = 0; k < 325; k++) {
-                                var statplaat = info[k].Locatie
-                                if (selected == statplaat) {
-                                    nummer.innerHTML = "Nummer: " + info[k].Nr;
-                                    OL.innerHTML = " - " + "OL: " + info[k].OL;
-                                    NB.innerHTML = " - " + "NB: " + info[k].NB;
-                                }
-                            }
-                        })
-
-                        d3.json("jonv2013.json", function(error, pre) {
-                            for (var j = 0; j < 323; j++) {
-                                var statplaats = pre[j].plaats
-                                if (selected == statplaats) {
-                                    neerslagjaar.innerHTML = "Cumulatief neerslag: " + pre[j].JAAR + " mm";
-                                }
-                            }
-                        })
-
-                    });
-                
-                // interactivity points and popup
-                stations.selectAll("path")                   
-                    .on("mouseout", function(){
-                        d3.select(this)
-                            .style("fill", "red");
-                        document.getElementById("popup").style.display = "none";
-
-                    });
-               
-            });
-
-            
-
-        </script>
+        <script src="application.js"></script>
     </body>
+    <footer>
+        <div class="text" id="footer">
+            Interactive Dutch Weather Information System (IDWIS) &bull; Based on KNMI.nl data &bull; Overview and weather data of the 325 Dutch weather stations &bull; IDWIS &copy; By Lennard Visser January, 2015
+    <footer>
 </html>

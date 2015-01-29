@@ -1,11 +1,16 @@
 .text {
+	width: 96%;
+	height: 50px;
+	background-color: #046F96;
 	font-family: arial;
 }
 
 #title {
-	font-size: 25px;
-	padding: 20px; 
-	padding-left: 150px;
+	font-size: 35px;
+	padding: 20px;
+	margin-bottom: 0px;
+	color: #FFFFFF;
+	text-align: center;
 }
 
 #weerstation {
@@ -14,16 +19,57 @@
 	text-align: center;
 }
 
-#infobox {
-	width: 240px;
-	height: 200px;
-	border: 2px solid grey;
-	margin: 20px;
-	margin-left: 600px;
+.svgmap {
 	position: absolute;
+	background-color: #81BEF7;
+	margin: 20px;
+	margin-top: 5px;
+	fill: #5FB404;
+	border: 3px solid grey;
+}
+
+.infobox {
+	position: absolute;
+	width: 270px;
+	height: 190px;
+	border: 2px solid grey;
+	margin: 5px;
+	margin-left: 600px;
 	padding: 5px;
 	background-color: #E8E8E8;
 	opacity: .8;
+}
+
+#legend {
+	margin: 30px;
+	margin-top: 15px;
+	width: 95px;
+	height: 175px;
+}
+
+#infobox1 {
+	border-color: #FFFFFF;
+	font-style: italic;
+	background-color: #FFFFFF;
+	height: 390px;
+}
+
+#infobox2 {
+	margin-top: 400px;
+}
+
+
+.chartContainer {
+	position: absolute;
+	margin-top: -20px;
+	margin-left: 900px;
+	margin-right: 0px;
+	width: 600px;
+	height: 310px;
+}
+
+#chartContainer2 {
+	margin-top: 280px;
 }
 
 #popup {
@@ -38,15 +84,67 @@
 	font-size: 12px;
 }
 
-.svgmap {
-	background-color: #B7CBFE;
-	margin: 20px;
-	fill: green;
-	border: 3px solid grey;
 
+.dropdown {
+	margin-top: 5px;
+	margin-left: 25px;
+}
+
+.cellen {
+	stroke-color: white;
+	background-color: white;
+	border-color: white;
+	color: white;
+	fill: white;
+}
+
+#cells {
+	stroke-color: "white";
+	background-color: "white";
+	border-color: "white";
+	color: "white";
+	fill: "white";
+}
+
+#footer {
+	height: 20px;
+	margin-top: 620px;
+	color: #FFFFFF;
+	font-size: 14px;
+	padding: 10px;
+	text-align: center
+}
+
+.circleBase {
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    margin: 1px;
+    margin-top: 8px;
+    border: 1px solid black;
+    border-width: 1px;
+}
+
+.legendText{
+	font-size: 12px;
+	margin-top: -13px;
+	margin-left: 18px;
+}
+
+#type1 {
+	background: #FAAC58;
+	border: 3px solid blue;
+	width: 7px;
+    height: 7px;
 }
 
 #nederland {
-
+	stroke-width: 1px;
+	stroke: black;
 }
 
+.place {
+	fill: #FAAC58;
+	stroke: black;
+    stroke-width: 1px;
+}
